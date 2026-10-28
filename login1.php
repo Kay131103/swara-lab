@@ -1,4 +1,7 @@
-<?php include ('./conn/conn.php') ?>
+<?php
+include("./conn/conn.php");
+if (isset($_SESSION["username"])) redirect("index.php");
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +26,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url("image1.jpeg");
+            background-image: url("image.jpg");
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -101,8 +104,10 @@
     </style>
 </head>
 <body>
-    
+
     <div class="main">
+
+        <?= render_flash() ?>
 
         <!-- Login Area -->
 
@@ -112,59 +117,58 @@
                 <h2 class="text-center">Welcome Back!</h2>
                 <p class="text-center">Fill your login details.</p>
                 <form action="./endpoint/login.php" method="POST">
+                    <?= csrf_field() ?>
                     <div class="form-group">
                         <label for="username">Username:</label>
-                        <input type="text" class="form-control" id="username" name="username">
+                        <input type="text" class="form-control" id="username" name="username" autocomplete="username" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Password:</label>
-                        <input type="password" class="form-control" id="password" name="password">
+                        <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
                     </div>
-                    <p>No Account? Register <span  class="switch-form-link" onclick="showRegistrationForm()">Here.</span></p>
-                    <button type="submit" class="btn btn-secondary login-btn form-control" >Login</button>
+                    <p>No Account? Register <span class="switch-form-link" onclick="showRegistrationForm()">Here.</span></p>
+                    <button type="submit" class="btn btn-secondary login-btn form-control">Login</button>
                 </form>
             </div>
 
         </div>
 
-
-
         <!-- Registration Area -->
         <div class="registration-form" id="registrationForm">
             <h2 class="text-center">Registration Form</h2>
-            <p class="text-center">Fill in you personal details.</p>
+            <p class="text-center">Fill in your personal details.</p>
             <form action="./endpoint/add-user.php" method="POST">
+                <?= csrf_field() ?>
                 <div class="form-group registration row">
                     <div class="col-6">
                         <label for="firstName">First Name:</label>
-                        <input type="text" class="form-control" id="firstName" name="first_name">
+                        <input type="text" class="form-control" id="firstName" name="first_name" required>
                     </div>
                     <div class="col-6">
                         <label for="lastName">Last Name:</label>
-                        <input type="text" class="form-control" id="lastName" name="last_name">
+                        <input type="text" class="form-control" id="lastName" name="last_name" required>
                     </div>
                 </div>
                 <div class="form-group registration row">
                     <div class="col-5">
                         <label for="contactNumber">Contact Number:</label>
-                        <input type="number" class="form-control" id="contactNumber" name="contact_number" maxlength="11">
+                        <input type="tel" class="form-control" id="contactNumber" name="contact_number" maxlength="20">
                     </div>
                     <div class="col-7">
                         <label for="email">Email:</label>
-                        <input type="text" class="form-control" id="email" name="email">
+                        <input type="email" class="form-control" id="email" name="email" autocomplete="email" required>
                     </div>
                 </div>
                 <div class="form-group registration">
                     <label for="registerUsername">Username:</label>
-                    <input type="text" class="form-control" id="registerUsername" name="username">
+                    <input type="text" class="form-control" id="registerUsername" name="username" pattern="[A-Za-z0-9_.\-]{3,32}" title="3-32 letters, digits, dots, dashes or underscores" autocomplete="username" required>
                 </div>
                 <div class="form-group registration">
                     <label for="registerPassword">Password:</label>
-                    <input type="password" class="form-control" id="registerPassword" name="password">
+                    <input type="password" class="form-control" id="registerPassword" name="password" minlength="8" autocomplete="new-password" required>
                 </div>
                 <p>Already have an account? Login <span class="switch-form-link" onclick="showLoginForm()">Here.</span></p>
                 <button type="submit" class="btn btn-dark login-register form-control" name="register">Register</button>
-
             </form>
 
         </div>
@@ -174,9 +178,6 @@
     <script>
         const loginForm = document.getElementById('loginForm');
         const registrationForm = document.getElementById('registrationForm');
-
-        registrationForm.style.display = "none";
-
 
         function showRegistrationForm() {
             registrationForm.style.display = "";
@@ -188,25 +189,13 @@
             loginForm.style.display = "";
         }
 
-        function sendVerificationCode() {
-            const registrationElements = document.querySelectorAll('.registration');
-
-            registrationElements.forEach(element => {
-                element.style.display = 'none';
-            });
-
-            const verification = document.querySelector('.verification');
-            if (verification) {
-                verification.style.display = 'none';
-            }
-        }
-
+        // Reopen the registration form after a failed sign-up.
+        <?php if (isset($_GET['register'])) : ?>
+        showRegistrationForm();
+        <?php else : ?>
+        showLoginForm();
+        <?php endif ?>
     </script>
 
-    <!-- Bootstrap Js -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-
 </body>
-</html> -->
+</html>

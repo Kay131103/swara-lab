@@ -1,0 +1,7 @@
+.git
+.venv
+config.php
+uploads/*
+tests
+__pycache__
+.pytest_cache

@@ -1,16 +1,13 @@
-<?php 
+<?php
+include('./conn/conn.php');
 
-session_start(); 
-
-if (!isset($_SESSION['username'])) {
-    $_SESSION['msg'] = "You must log in first";
-    header('location: login1.php');
-}
 if (isset($_GET['logout'])) {
+    $_SESSION = [];
     session_destroy();
-    unset($_SESSION['username']);
-    header("location: login1.php");
+    redirect('login1.php');
 }
+require_login();
+$maxMb = $config['max_upload_mb'];
 ?>
 
 <!DOCTYPE html>
@@ -187,49 +184,58 @@ if (isset($_GET['logout'])) {
 <body>
     <div class="navbar">
         <a href="index.php">MeloMaster</a>
-        <?php if (isset($_SESSION['username'])) : ?>
-            <a href="index.php?logout='1'" class="logout">Logout</a>
-        <?php endif ?>
+        <a href="index.php?logout=1" class="logout">Logout</a>
     </div>
-    <?php if (isset($_SESSION['username'])) : ?>
-        <div class="container">
-            <div class="left-content">
-                <div class="welcome-msg">Welcome, <?php echo $_SESSION['username']; ?></div>
-                <div class="paragraph">
-                    For amateur musicians and students aspiring for a musical career, MeloMaster is an invaluable website that facilitates the conversion of audio into musical notes, aiding users in better understanding their compositions.
-                </div>
-            </div>
-            <div class="content">
-                <form action="upload_audio.php" method="post" class="upload-form" enctype="multipart/form-data">
-                    <label for="audio_file">
-                        <i class="fas fa-music"></i> Choose Music
-                    </label>
-                    <input type="file" id="audio_file" name="audio_file" accept="audio/*">
-                    <div class="file-info" id="fileInfo"></div> <!-- File info div -->
-                    <button type="submit">Upload</button>
-                </form>
+    <div class="container">
+        <div class="left-content">
+            <div class="welcome-msg">Welcome, <?= e($_SESSION['username']) ?></div>
+            <div class="paragraph">
+                For amateur musicians and students aspiring for a musical career, MeloMaster is an invaluable website that facilitates the conversion of audio into musical notes, aiding users in better understanding their compositions.
             </div>
         </div>
-    <?php endif ?>
+        <div class="content">
+            <form action="upload_audio.php" method="post" class="upload-form" enctype="multipart/form-data" id="uploadForm">
+                <?= csrf_field() ?>
+                <?= render_flash() ?>
+                <label for="audio_file">
+                    <i class="fas fa-music"></i> Choose Music
+                </label>
+                <input type="file" id="audio_file" name="audio_file" accept=".mp3,.wav,.ogg,.flac,.m4a,audio/*" required>
+                <div class="file-info" id="fileInfo"></div>
+                <button type="submit" id="uploadButton">Upload</button>
+            </form>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('audio_file').addEventListener('change', function() {
-            var fileInput = this;
-            var fileInfo = document.getElementById('fileInfo');
-            if (fileInput.files.length > 0) {
-                var fileSize = fileInput.files[0].size / (1024 * 1024); // Convert bytes to MB
-                if (fileSize > 9){
-                    alert("Size shouldn't exceed 9Mb");
-                    return
-                }
-                var fileName = fileInput.files[0].name;
-                fileInfo.innerHTML = 'Selected File: ' + fileName + ' (' + fileSize.toFixed(2) + ' MB)';
-            } else {
-                fileInfo.innerHTML = '';
+        var MAX_MB = <?= (int) $maxMb ?>;
+        var fileInput = document.getElementById('audio_file');
+        var fileInfo = document.getElementById('fileInfo');
+
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length === 0) {
+                fileInfo.textContent = '';
+                return;
             }
+            var file = fileInput.files[0];
+            var sizeMb = file.size / (1024 * 1024);
+            if (sizeMb > MAX_MB) {
+                alert("Size shouldn't exceed " + MAX_MB + " MB");
+                fileInput.value = '';
+                fileInfo.textContent = '';
+                return;
+            }
+            fileInfo.textContent = 'Selected File: ' + file.name + ' (' + sizeMb.toFixed(2) + ' MB)';
+        });
+
+        // Transcription can take a while for longer recordings.
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            var button = document.getElementById('uploadButton');
+            button.disabled = true;
+            button.textContent = 'Transcribing...';
         });
     </script>
-      <footer>
+    <footer>
         <div class="footer-content">
             <p>&copy; MeloMaster 2024. All rights are preserved.</p>
         </div>

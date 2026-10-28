@@ -1,0 +1,36 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_USER: melomaster
+      DB_PASS: melomaster
+      # Set SMTP_ENABLED=1 and the SMTP_* variables to send real emails.
+      SMTP_ENABLED: ${SMTP_ENABLED:-0}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: login_email_verification
+      MARIADB_USER: melomaster
+      MARIADB_PASSWORD: melomaster
+    volumes:
+      - ./login_email_verification.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  dbdata:

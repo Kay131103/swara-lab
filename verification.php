@@ -1,9 +1,8 @@
-<?php 
+<?php
     include ('./conn/conn.php');
-    session_start();
 
-    if (isset($_SESSION['user_verification_id'])) {
-        $userVerificationID = $_SESSION['user_verification_id'];
+    if (empty($_SESSION['user_verification_id'])) {
+        redirect('login1.php');
     }
  ?>
 
@@ -30,7 +29,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url("image1.jpeg");
+            background-image: url("image.jpg");
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-size: cover;
@@ -104,6 +103,8 @@
     
     <div class="main">
 
+        <?= render_flash() ?>
+
         <!-- Email Verification Area -->
 
         <div class="verification-container">
@@ -112,8 +113,9 @@
                 <h2 class="text-center">Email Verification</h2>
                 <p class="text-center">Please check your email for verification code.</p>
                 <form action="./endpoint/add-user.php" method="POST">
-                    <input type="text" name="user_verification_id" value="<?= $userVerificationID ?>" hidden>
-                    <input type="text" class="form-control text-center" id="verificationCode" name="verification_code">
+                    <?= csrf_field() ?>
+                    <input type="text" class="form-control text-center" id="verificationCode" name="verification_code"
+                           inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
                     <button type="submit" class="btn btn-secondary login-btn form-control mt-4" name="verify">Verify</button>
                 </form>
             </div>
@@ -121,11 +123,6 @@
         </div>
 
     </div>
-
-    <!-- Bootstrap Js -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 
     <script>
         // JavaScript to change background color as characters are typed

@@ -9,7 +9,10 @@ require_csrf();
 $username = trim(isset($_POST['username']) ? $_POST['username'] : '');
 $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-$stmt = $conn->prepare("SELECT `password`, `verified` FROM `tbl_user` WHERE `username` = :username");
+$stmt = $conn->prepare(
+    'SELECT tbl_user_id, password, CASE WHEN verified THEN 1 ELSE 0 END AS verified '
+    . 'FROM tbl_user WHERE username = :username'
+);
 $stmt->execute(['username' => $username]);
 $user = $stmt->fetch();
 
@@ -26,4 +29,5 @@ if (!$user['verified']) {
 
 session_regenerate_id(true);
 $_SESSION['username'] = $username;
+$_SESSION['user_id'] = (int) $user['tbl_user_id'];
 redirect('../index.php');

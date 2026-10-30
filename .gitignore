@@ -1,4 +1,5 @@
 config.php
+.env
 uploads/*
 !uploads/.htaccess
 __pycache__/

@@ -1,6 +1,7 @@
 .git
 .venv
 config.php
+.env
 uploads/*
 tests
 __pycache__

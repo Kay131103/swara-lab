@@ -59,7 +59,10 @@ if (isset($_POST['register'])) {
     }
 
     try {
-        $stmt = $conn->prepare("SELECT `username`, `email`, `verified` FROM `tbl_user` WHERE `username` = :username OR `email` = :email");
+        $stmt = $conn->prepare(
+            'SELECT username, email, CASE WHEN verified THEN 1 ELSE 0 END AS verified '
+            . 'FROM tbl_user WHERE username = :username OR email = :email'
+        );
         $stmt->execute(['username' => $username, 'email' => $email]);
         foreach ($stmt->fetchAll() as $existing) {
             if ($existing['verified']) {
@@ -68,15 +71,16 @@ if (isset($_POST['register'])) {
             }
         }
         // Clear out abandoned, never-verified sign-ups using the same name/email.
-        $conn->prepare("DELETE FROM `tbl_user` WHERE (`username` = :username OR `email` = :email) AND `verified` = 0")
+        $conn->prepare('DELETE FROM tbl_user WHERE (username = :username OR email = :email) AND verified = false')
             ->execute(['username' => $username, 'email' => $email]);
 
         $verificationCode = random_int(100000, 999999);
 
         $conn->beginTransaction();
         $insert = $conn->prepare(
-            "INSERT INTO `tbl_user` (`first_name`, `last_name`, `contact_number`, `email`, `username`, `password`, `verification_code`, `verified`)
-             VALUES (:first_name, :last_name, :contact_number, :email, :username, :password, :verification_code, 0)"
+            'INSERT INTO tbl_user (first_name, last_name, contact_number, email, username, password, verification_code, verified) '
+            . 'VALUES (:first_name, :last_name, :contact_number, :email, :username, :password, :verification_code, false) '
+            . 'RETURNING tbl_user_id'
         );
         $insert->execute([
             'first_name'        => $firstName,
@@ -87,7 +91,7 @@ if (isset($_POST['register'])) {
             'password'          => password_hash($password, PASSWORD_DEFAULT),
             'verification_code' => $verificationCode,
         ]);
-        $userId = $conn->lastInsertId();
+        $userId = $insert->fetchColumn();
 
         if ($config['smtp']['enabled']) {
             send_verification_email($config, $email, $firstName, $verificationCode);
@@ -125,12 +129,14 @@ if (isset($_POST['verify'])) {
     $userId = $_SESSION['user_verification_id'];
     $code = trim(isset($_POST['verification_code']) ? $_POST['verification_code'] : '');
 
-    $stmt = $conn->prepare("SELECT `verification_code` FROM `tbl_user` WHERE `tbl_user_id` = :id AND `verified` = 0");
+    $stmt = $conn->prepare(
+        'SELECT verification_code FROM tbl_user WHERE tbl_user_id = :id AND verified = false'
+    );
     $stmt->execute(['id' => $userId]);
     $row = $stmt->fetch();
 
     if ($row && hash_equals((string) $row['verification_code'], $code)) {
-        $conn->prepare("UPDATE `tbl_user` SET `verified` = 1 WHERE `tbl_user_id` = :id")->execute(['id' => $userId]);
+        $conn->prepare('UPDATE tbl_user SET verified = true WHERE tbl_user_id = :id')->execute(['id' => $userId]);
         unset($_SESSION['user_verification_id'], $_SESSION['verify_attempts']);
         flash('Email verified - you can now log in.', 'success');
         redirect('../login1.php');
@@ -138,7 +144,7 @@ if (isset($_POST['verify'])) {
 
     $_SESSION['verify_attempts']++;
     if (!$row || $_SESSION['verify_attempts'] >= MAX_VERIFY_ATTEMPTS) {
-        $conn->prepare("DELETE FROM `tbl_user` WHERE `tbl_user_id` = :id AND `verified` = 0")->execute(['id' => $userId]);
+        $conn->prepare('DELETE FROM tbl_user WHERE tbl_user_id = :id AND verified = false')->execute(['id' => $userId]);
         unset($_SESSION['user_verification_id'], $_SESSION['verify_attempts']);
         flash('Too many incorrect codes. Please register again.');
         redirect('../login1.php?register=1');

@@ -4,33 +4,44 @@ services:
     ports:
       - "8080:80"
     environment:
+      APP_ENV: development
       DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: melomaster
       DB_USER: melomaster
-      DB_PASS: melomaster
-      # Set SMTP_ENABLED=1 and the SMTP_* variables to send real emails.
+      DB_PASS: ${DB_PASS:?Set DB_PASS in your .env file}
+      BLOB_STORAGE_MODE: local
+      LOCAL_STORAGE_DIR: /var/lib/melomaster
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-4}
+      MAX_AUDIO_SECONDS: ${MAX_AUDIO_SECONDS:-30}
+      MAX_CONCURRENT_JOBS_PER_USER: ${MAX_CONCURRENT_JOBS_PER_USER:-1}
+      MAX_JOBS_PER_HOUR: ${MAX_JOBS_PER_HOUR:-10}
+      MAX_USER_STORAGE_MB: ${MAX_USER_STORAGE_MB:-100}
       SMTP_ENABLED: ${SMTP_ENABLED:-0}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+    volumes:
+      - localdata:/var/lib/melomaster
     depends_on:
       db:
         condition: service_healthy
 
   db:
-    image: mariadb:11
+    image: postgres:17-alpine
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: login_email_verification
-      MARIADB_USER: melomaster
-      MARIADB_PASSWORD: melomaster
+      POSTGRES_DB: melomaster
+      POSTGRES_USER: melomaster
+      POSTGRES_PASSWORD: ${DB_PASS:?Set DB_PASS in your .env file}
     volumes:
       - ./login_email_verification.sql:/docker-entrypoint-initdb.d/schema.sql:ro
-      - dbdata:/var/lib/mysql
+      - dbdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U melomaster -d melomaster"]
       interval: 5s
       retries: 20
 
 volumes:
   dbdata:
+  localdata:

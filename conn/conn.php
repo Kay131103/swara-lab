@@ -5,28 +5,80 @@
 // config.sample.php (overridable by environment variables) are used.
 $configFile = __DIR__ . '/../config.php';
 $config = require (file_exists($configFile) ? $configFile : __DIR__ . '/../config.sample.php');
+$config['app_env'] = isset($config['app_env']) ? $config['app_env'] : (getenv('APP_ENV') ?: 'development');
+$config['max_jobs_per_hour'] = max(
+    1,
+    (int) (isset($config['max_jobs_per_hour']) ? $config['max_jobs_per_hour'] : (getenv('MAX_JOBS_PER_HOUR') ?: 10))
+);
+$config['max_concurrent_jobs_per_user'] = max(
+    1,
+    min(3, (int) (isset($config['max_concurrent_jobs_per_user']) ? $config['max_concurrent_jobs_per_user'] : (getenv('MAX_CONCURRENT_JOBS_PER_USER') ?: 1)))
+);
+$config['max_user_storage_mb'] = max(
+    1,
+    (int) (isset($config['max_user_storage_mb']) ? $config['max_user_storage_mb'] : (getenv('MAX_USER_STORAGE_MB') ?: 100))
+);
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start([
-        'cookie_httponly' => true,
-        'cookie_samesite' => 'Lax',
-    ]);
+if ($config['app_env'] === 'production') {
+    if (empty($config['db']['url'])) {
+        throw new RuntimeException('Production requires a PostgreSQL connection URL.');
+    }
+    if (empty($config['smtp']['enabled']) || empty($config['smtp']['user']) || empty($config['smtp']['pass']) || empty($config['smtp']['from_email'])) {
+        throw new RuntimeException('Production requires SMTP_ENABLED and complete SMTP credentials.');
+    }
 }
 
 try {
-    $conn = new PDO(
-        "mysql:host={$config['db']['host']};dbname={$config['db']['name']};charset=utf8mb4",
-        $config['db']['user'],
-        $config['db']['pass'],
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
+    if ($config['db']['url'] !== '') {
+        $dbUrl = parse_url($config['db']['url']);
+        if (
+            !$dbUrl
+            || !isset($dbUrl['scheme'], $dbUrl['host'], $dbUrl['path'], $dbUrl['user'], $dbUrl['pass'])
+            || !in_array($dbUrl['scheme'], ['postgres', 'postgresql'], true)
+            || strpos($dbUrl['host'], ';') !== false
+        ) {
+            throw new RuntimeException('POSTGRES_URL must be a valid PostgreSQL connection URL.');
+        }
+        $query = [];
+        parse_str(isset($dbUrl['query']) ? $dbUrl['query'] : '', $query);
+        $sslMode = isset($query['sslmode']) ? $query['sslmode'] : 'require';
+        $dbName = rawurldecode(ltrim($dbUrl['path'], '/'));
+        if (
+            !preg_match('/^[A-Za-z0-9_.-]+$/', $dbName)
+            || !in_array($sslMode, ['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'], true)
+        ) {
+            throw new RuntimeException('POSTGRES_URL contains an unsupported database name or SSL mode.');
+        }
+        $dsn = 'pgsql:host=' . $dbUrl['host']
+            . ';port=' . (isset($dbUrl['port']) ? $dbUrl['port'] : 5432)
+            . ';dbname=' . $dbName
+            . ';sslmode=' . $sslMode;
+        $dbUser = rawurldecode($dbUrl['user']);
+        $dbPass = rawurldecode($dbUrl['pass']);
+    } else {
+        $dsn = "pgsql:host={$config['db']['host']};port={$config['db']['port']};dbname={$config['db']['name']}";
+        $dbUser = $config['db']['user'];
+        $dbPass = $config['db']['pass'];
+    }
+
+    $conn = new PDO($dsn, $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 } catch (PDOException $e) {
     error_log('Database connection failed: ' . $e->getMessage());
     http_response_code(500);
     exit('Database connection failed.');
+}
+
+require_once __DIR__ . '/PostgresSessionHandler.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_save_handler(new PostgresSessionHandler($conn), true);
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'cookie_secure' => $config['app_env'] === 'production',
+    ]);
 }
 
 /** HTML-escape a value for output. */
@@ -84,8 +136,42 @@ function require_csrf()
 
 function require_login()
 {
-    if (!isset($_SESSION['username'])) {
+    if (!isset($_SESSION['username']) || !isset($_SESSION['user_id'])) {
+        unset($_SESSION['username'], $_SESSION['user_id']);
         flash('You must log in first.', 'warning');
         redirect('login1.php');
     }
+}
+
+function run_python_json($config, $script, $arguments)
+{
+    $command = array_merge([$config['python'], __DIR__ . '/../' . $script], $arguments);
+    $stderrPath = tempnam(sys_get_temp_dir(), 'melo_stderr_');
+    if ($stderrPath === false) {
+        throw new RuntimeException('Could not create an audio processing log file.');
+    }
+    $proc = proc_open(
+        $command,
+        [1 => ['pipe', 'w'], 2 => ['file', $stderrPath, 'w']],
+        $pipes,
+        __DIR__ . '/..'
+    );
+    if (!is_resource($proc)) {
+        unlink($stderrPath);
+        throw new RuntimeException('Could not start the audio processing runtime.');
+    }
+
+    $stdout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    $exitCode = proc_close($proc);
+    $stderr = file_get_contents($stderrPath);
+    if (!unlink($stderrPath)) {
+        error_log("Could not remove temporary processing log $stderrPath.");
+    }
+    $result = json_decode($stdout, true);
+    if ($exitCode !== 0 || !is_array($result)) {
+        error_log("$script failed ($exitCode): $stderr $stdout");
+        throw new RuntimeException(isset($result['error']) ? $result['error'] : 'Audio processing failed.');
+    }
+    return $result;
 }

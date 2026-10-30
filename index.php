@@ -8,6 +8,7 @@ if (isset($_GET['logout'])) {
 }
 require_login();
 $maxMb = $config['max_upload_mb'];
+$maxSeconds = $config['max_audio_seconds'];
 ?>
 
 <!DOCTYPE html>
@@ -202,6 +203,7 @@ $maxMb = $config['max_upload_mb'];
                 </label>
                 <input type="file" id="audio_file" name="audio_file" accept=".mp3,.wav,.ogg,.flac,.m4a,audio/*" required>
                 <div class="file-info" id="fileInfo"></div>
+                <p>Maximum <?= (int) $maxMb ?> MB and <?= (int) $maxSeconds ?> seconds. Transcription runs before the page loads.</p>
                 <button type="submit" id="uploadButton">Upload</button>
             </form>
         </div>
@@ -228,7 +230,7 @@ $maxMb = $config['max_upload_mb'];
             fileInfo.textContent = 'Selected File: ' + file.name + ' (' + sizeMb.toFixed(2) + ' MB)';
         });
 
-        // Transcription can take a while for longer recordings.
+        // Transcription runs within the upload request on Vercel.
         document.getElementById('uploadForm').addEventListener('submit', function() {
             var button = document.getElementById('uploadButton');
             button.disabled = true;

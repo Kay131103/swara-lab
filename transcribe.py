@@ -23,16 +23,40 @@ import librosa
 import numpy as np
 import scipy.signal
 
-HOP_LENGTH = 512
-FRAME_LENGTH = 2048
-
-
 def freq_to_note(freq, a4=440.0):
     """Return the nearest note name (e.g. 'A4', 'C#5') for a frequency in Hz."""
     if freq is None or freq <= 0:
         return None
     midi = int(round(69 + 12 * np.log2(freq / a4)))
     return librosa.midi_to_note(midi, unicode=False)
+
+
+HOP_LENGTH = 512
+FRAME_LENGTH = 2048
+
+SARGAM = ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni"]
+# semitone offset from Sa -> sargam syllable (with komal/tivra marks),
+# octave-wrapped: 12 -> Sa', 13 -> re' ... exactly like Sax Lab's labels.
+_OFFSET_SYLLABLE = {
+    0: "Sa", 1: "re", 2: "Re", 3: "ga", 4: "Ma", 5: "Pa",
+    6: "dha", 7: "Dha", 8: "ni", 9: "Ni", 10: "Re'", 11: "Ga'",
+}
+
+
+def sargam_name(midi, sa_midi):
+    """Sargam syllable + octave tag for an absolute midi note, relative to Sa."""
+    offset = midi - sa_midi
+    octaves, wrapped = divmod(offset, 12)
+    if wrapped < 0:
+        octaves -= 1
+        wrapped += 12
+    syl = _OFFSET_SYLLABLE[wrapped]
+    if octaves > 0:
+        syl += "'" * octaves
+    elif octaves < 0:
+        syl = syl.lower() if syl[0].isupper() and len(syl) == 1 else syl + "̂"  # below Sa
+    tag = "base" if octaves == 0 else ("pitch higher" if octaves > 0 else "lower")
+    return syl, tag
 
 
 def transcribe(
@@ -112,6 +136,9 @@ def transcribe(
             notes[-1]["duration"] = round(notes[-1]["end"] - notes[-1]["start"], 3)
             continue
         hz = float(np.nanmedian(f0[s:e]))
+        # intonation: deviation of the median f0 from equal temperament ( Sax Lab style)
+        et_freq = a4 * 2 ** ((pitch - 69) / 12)
+        cents = 1200 * np.log2(hz / et_freq) if hz > 0 else None
         notes.append(
             {
                 "note": librosa.midi_to_note(int(pitch), unicode=False),
@@ -120,6 +147,7 @@ def transcribe(
                 "end": round(e * frame_time, 3),
                 "duration": round(duration, 3),
                 "frequency": round(hz, 2),
+                "cents": round(float(cents), 1) if cents is not None else None,
             }
         )
     return notes
@@ -171,7 +199,6 @@ def write_midi(notes, path, tempo_bpm=120, velocity=90):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("audio_file")
-    parser.add_argument("--format", choices=["text", "json"], default="text")
     parser.add_argument("--midi", metavar="PATH", help="also write a MIDI file")
     parser.add_argument("--fmin", default="C2", help="lowest expected note (default C2)")
     parser.add_argument("--fmax", default="C7", help="highest expected note (default C7)")
@@ -180,6 +207,15 @@ def main(argv=None):
         help="ignore notes shorter than this many seconds (default 0.08)",
     )
     parser.add_argument("--a4", type=float, default=440.0, help="tuning of A4 in Hz")
+    parser.add_argument(
+        "--format", dest="fmt", choices=["text", "json"], default="text",
+        help="output format (kept for backwards compat)")
+    parser.add_argument(
+        "--sargam", action="store_true",
+        help="also print the melody as sargam syllables relative to the first note",
+    )
+    parser.add_argument("--sargam-sa", type=int, default=None,
+        help="midi note to treat as Sa (default: the first transcribed note)")
     args = parser.parse_args(argv)
 
     try:
@@ -192,14 +228,22 @@ def main(argv=None):
         )
         if args.midi:
             write_midi(notes, args.midi)
+        if args.sargam and notes:
+            sa_midi = args.sargam_sa if args.sargam_sa is not None else notes[0]["midi"]
+            sa_note = librosa.midi_to_note(sa_midi, unicode=False)
+            print(f"Sa = {sa_note}")
+            for n in notes:
+                syl, tag = sargam_name(n["midi"], sa_midi)
+                cents = f", {n['cents']:+.0f}c" if n.get("cents") is not None else ""
+                print(f"{syl:>4} ({tag}) — {n['note']}{cents}")
     except Exception as e:  # report cleanly to the caller (CLI or PHP)
-        if args.format == "json":
+        if args.fmt == "json":
             print(json.dumps({"error": str(e)}))
         else:
             print(f"Error: {e}", file=sys.stderr)
         return 1
 
-    if args.format == "json":
+    if args.fmt == "json":
         print(json.dumps({"notes": notes}))
     else:
         print(format_text(notes) if notes else "No notes detected.")

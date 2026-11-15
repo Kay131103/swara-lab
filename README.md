@@ -63,6 +63,23 @@ backend, set `MAX_CONCURRENT_JOBS_PER_USER` (default 1),
 
 Run the transcription tests with `python -m pytest`.
 
+## Sargam output & intonation data
+
+The transcriber also speaks Sax Lab's language:
+
+```sh
+python transcribe.py song.mp3 --sargam          # melody as sargam syllables
+python transcribe.py song.mp3 --sargam --sargam-sa 60   # force Sa to C4 (midi 60)
+python transcribe.py song.mp3 --format json     # per-note "cents" deviation included
+```
+
+- Every note in the JSON output now carries a `"cents"` field: the deviation of its
+  median f0 from equal temperament — the same intonation metric as
+  [Sax Lab](https://sax.krithiuk.space).
+- `--sargam` prints the melody as sargam syllables relative to Sa (the first note by
+  default, or set it explicitly), with octave tags: `Sa (base)`, `Sa' (pitch higher)`.
+- Komal/tivra variants are mapped chromatically (re, ga, dha, ni / Re, Ga, Dha, Ni).
+
 ## Existing MySQL database
 
 This version uses PostgreSQL. The SQL schema is not a MySQL migration; existing

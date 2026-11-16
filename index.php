@@ -206,6 +206,7 @@ $maxSeconds = $config['max_audio_seconds'];
                 <div style="margin:.6rem 0;">
                     <label for="tala" style="font-size:.85rem;"><i class="fas fa-drum"></i> Tala (beats per group):</label>
                     <select id="tala" name="tala" style="padding:.4rem; border-radius:.4rem; border:1px solid #5C5766;">
+                        <option value="auto" selected>Auto-detect from the audio</option>
                         <option value="4">Adi / Chaturashra — 4</option>
                         <option value="3">Tisra / Rupaka — 3</option>
                         <option value="5">Khanda — 5</option>

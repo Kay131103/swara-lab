@@ -122,7 +122,8 @@ if ($noteCount > 0 && isset($midis[0])) {
             <?php if ($groups) : ?>
                 <p style="font-size:.85rem; color:#8A8A8A; margin-bottom:.6rem;">
                     sargam relative to Sa = <b><?= e($raga['sa']) ?></b> (your alto's written pitch) ·
-                    grouped <?= (int) $beats ?> swaras per beat, carnatic style.
+                    grouped <?= (int) $beats ?> swaras per beat,
+                    <?= e(($raga['beatsSource'] ?? 'selected') === 'auto-detected' ? 'auto-detected from the audio' : 'tala you selected') ?>.
                 </p>
                 <div id="notes">
                     <?php foreach ($groups as $gi => $group) : ?>

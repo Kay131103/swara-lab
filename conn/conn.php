@@ -95,7 +95,7 @@ try {
          VALUES ('Guest', 'User', 'guest@melomaster.local', 'guest', '', '000000', true)
          ON CONFLICT (email) DO NOTHING"
     )->execute();
-    $stmt = $conn->prepare('SELECT tbl_user_id FROM tbl_user WHERE email = 'guest@melomaster.local' LIMIT 1');
+    $stmt = $conn->prepare("SELECT tbl_user_id FROM tbl_user WHERE email = 'guest@melomaster.local' LIMIT 1");
     $stmt->execute();
     $guestId = $stmt->fetchColumn();
     if ($guestId && !isset($_SESSION['user_id'])) {

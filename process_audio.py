@@ -7,6 +7,9 @@ from pathlib import Path
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+from raga import analyze_raga  # noqa: E402
+
 TRANSCRIPTION_TIMEOUT = 240
 
 
@@ -74,7 +77,7 @@ def main(argv=None):
     except Exception as error:
         print(json.dumps({"error": str(error)}))
         return 1
-    print(json.dumps({"notes": notes}, separators=(",", ":")))
+    print(json.dumps({"notes": notes, "raga": analyze_raga(notes)}, separators=(",", ":")))
     return 0
 
 

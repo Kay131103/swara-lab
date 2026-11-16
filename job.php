@@ -54,6 +54,7 @@ if ($noteCount) {
         #notes { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
         .note { padding: .5rem; border: 0; border-radius: .5rem; background: white; color: inherit; cursor: pointer; }
         .note.active { background: #E69A8D; color: white; }
+        .raga-card { margin-top: 1rem; padding: 1rem; border: 1px solid #5C5766; border-radius: .6rem; background: #fff; }
         audio { width: 100%; margin-top: 1rem; }
     </style>
 </head>
@@ -74,6 +75,32 @@ if ($noteCount) {
         </audio>
         <?php if ($noteCount > 0) : ?>
             <p><a href="download.php?id=<?= e($id) ?>&amp;type=midi">Download MIDI</a></p>
+            <?php if ($raga !== null && !empty($raga['tonic'])) : ?>
+                <div class="raga-card">
+                    <h2 style="font-size:1rem;">Raga analysis</h2>
+                    <p>Tonic detected: <b><?= e($raga['tonic']) ?></b></p>
+                    <?php foreach (($raga['candidates'] ?? []) as $i => $cand) : ?>
+                        <div style="display:flex; align-items:center; gap:.5rem; margin:.35rem 0;">
+                            <b style="min-width:9rem;"><?= ($i + 1) . '. ' . e($cand['name']) ?></b>
+                            <div style="flex:1; height:.6rem; border:1px solid #5C5766; border-radius:.3rem; background:#fff; overflow:hidden;">
+                                <div style="height:100%; width:<?= (int) round($cand['score'] * 100) ?>%; background:#2563EB;"></div>
+                            </div>
+                            <span style="font-family:monospace; font-size:.8rem;"><?= round($cand['score'] * 100) ?>% fit</span>
+                        </div>
+                    <?php endforeach ?>
+                    <?php if (isset($raga['gemini_assist']['candidates']) && $raga['gemini_assist']['candidates']) : ?>
+                        <p style="margin-top:.6rem;"><b>LLM-assisted opinion</b>
+                            <?php foreach ($raga['gemini_assist']['candidates'] as $c) : ?>
+                                <br>· <?= e($c['name']) ?> — <?= e(round(($c['confidence'] ?? 0) * 100)) ?>% · <?= e($c['why'] ?? '') ?>
+                            <?php endforeach ?>
+                            <?php if (!empty($raga['gemini_assist']['caveat'])) : ?>
+                                <br><i><?= e($raga['gemini_assist']['caveat']) ?></i>
+                            <?php endif ?>
+                        </p>
+                    <?php endif ?>
+                    <p style="font-size:.85rem; color:#8A8A8A;">percentages are a shortlist, not a verdict — works best on solo / classical recordings; film songs with heavy accompaniment make this approximate.</p>
+                </div>
+            <?php endif ?>
             <div id="notes">
                 <?php foreach ($notes as $note) : ?>
                     <button class="note" type="button" data-start="<?= e($note['start']) ?>"

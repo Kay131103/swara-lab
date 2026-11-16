@@ -145,6 +145,7 @@ try {
         (string) $config['max_audio_seconds'],
     ]);
     $notes = $result['notes'];
+    $raga = isset($result['raga']) ? $result['raga'] : null;
 
     run_python_json($config, 'blob_storage.py', [
         'put',
@@ -178,7 +179,10 @@ try {
         "UPDATE transcription_jobs SET status = 'completed', notes_json = CAST(:notes AS jsonb), "
         . 'error_message = NULL, updated_at = now() WHERE id = :id'
     )->execute([
-        'notes' => json_encode($notes, JSON_THROW_ON_ERROR),
+        'notes' => json_encode(
+            $raga !== null ? ['notes' => $notes, 'raga' => $raga] : $notes,
+            JSON_THROW_ON_ERROR
+        ),
         'id' => $jobId,
     ]);
 } catch (Throwable $error) {

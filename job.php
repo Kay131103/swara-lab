@@ -35,7 +35,7 @@ if ($job['status'] === 'completed') {
 
 $noteCount = count($notes);
 $range = '';
-if ($noteCount) {
+if ($noteCount > 0 && isset($midis[0])) {
     $midis = array_column($notes, 'midi');
     $low = $notes[array_search(min($midis), $midis)];
     $high = $notes[array_search(max($midis), $midis)];

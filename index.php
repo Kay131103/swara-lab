@@ -73,6 +73,7 @@ $maxSeconds = $config['max_audio_seconds'];
         .flash.warning { background: var(--coral-soft); }
 
         .dropzone {
+            display: block;
             border: 2px dashed var(--ink); border-radius: 12px; background: var(--sand-soft);
             padding: 26px 16px; text-align: center; cursor: pointer; transition: background 0.15s;
         }

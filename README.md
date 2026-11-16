@@ -1,6 +1,6 @@
-# MeloMaster
+# Swara Lab
 
-MeloMaster converts short monophonic audio into musical notes and MIDI. The
+Swara Lab converts short monophonic audio into musical notes and MIDI. The
 application is packaged as a PHP/Python container for Vercel; PostgreSQL stores
 users, sessions, and results, while Vercel Blob stores private audio and MIDI.
 

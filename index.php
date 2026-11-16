@@ -16,109 +16,104 @@ $maxSeconds = $config['max_audio_seconds'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeloMaster — recordings to notes</title>
-    <meta name="description" content="Upload any short recording and get the notes, MIDI, sargam in your alto's written scale, and a raga shortlist. Runs free, on your account." />
+    <title>Swara Lab — recordings to swaras</title>
+    <meta name="description" content="Upload any short recording and get the swaras, MIDI, and a raga shortlist — in your alto's written scale, grouped beatwise carnatic style." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --cream: #FAF8F5; --paper: #FFFDF9; --ink: #1A1A1A; --soft: #4A4A4A; --faint: #8A8A8A;
-            --elec: #2563EB; --elec-soft: #DBEAFE; --coral: #F87171; --coral-soft: #FEE2E2;
-            --sage: #86EFAC; --sage-soft: #DCFCE7; --butter: #FDE68A; --butter-dark: #FACC15;
-            --sand: #E7D8C9; --sand-soft: #F5EDE4;
+            --bg: #101016; --panel: #17171f; --panel-2: #1d1d29;
+            --line: rgba(255,255,255,0.09);
+            --text: #ECECF2; --soft: #A6A6B4; --faint: #6E6E80;
+            --gold: #F5B841; --gold-dim: rgba(245,184,65,0.16);
+            --elec: #8B9BFF; --sage: #7BD88F; --coral: #FF7B72;
         }
         * { box-sizing: border-box; }
         body {
-            margin: 0; padding: 0 18px 60px;
-            background: var(--cream); color: var(--ink);
-            font: 15px/1.6 "DM Sans", system-ui, sans-serif;
+            margin: 0; padding: 0 18px 60px; min-height: 100vh;
+            background: radial-gradient(900px 500px at 80% -10%, #1c1c2a 0%, var(--bg) 60%);
+            color: var(--text); font: 15px/1.6 "DM Sans", system-ui, sans-serif;
         }
         .wrap { max-width: 920px; margin: 0 auto; }
-        .topbar {
-            display: flex; align-items: center; gap: 10px;
-            padding: 18px 0 6px;
-        }
+        .topbar { display: flex; align-items: center; gap: 12px; padding: 22px 0 8px; }
         .logo-tile {
-            width: 40px; height: 40px; border-radius: 11px; background: var(--elec);
-            display: grid; place-items: center; color: #fff; font-weight: 800;
-            font-family: "Plus Jakarta Sans"; font-size: 17px;
-            border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
-            position: relative;
+            width: 42px; height: 42px; border-radius: 12px; background: var(--gold);
+            display: grid; place-items: center; color: #14141c; font-weight: 800;
+            font-family: "Plus Jakarta Sans"; font-size: 18px; box-shadow: 0 6px 18px rgba(245,184,65,0.25);
         }
-        .logo-tile .dot { position: absolute; right: 6px; bottom: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
         .brand { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: 19px; }
-        .brand span { color: var(--elec); }
+        .brand span { color: var(--gold); }
         .spacer { flex: 1; }
         .logout-btn {
-            font: 700 12.5px "DM Sans"; padding: 7px 14px; border-radius: 999px;
-            border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
-            box-shadow: 2px 2px 0 var(--ink); cursor: pointer; text-decoration: none;
+            font: 700 12.5px "DM Sans"; padding: 8px 15px; border-radius: 999px;
+            border: 1.5px solid var(--line); background: var(--panel); color: var(--soft);
+            cursor: pointer; text-decoration: none; transition: border-color 0.15s, color 0.15s;
         }
-        .logout-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+        .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-        .hero { padding: 26px 0 8px; }
-        .hero .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--faint); margin-bottom: 8px; }
-        .hero h1 { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: clamp(30px, 5vw, 48px); line-height: 1.12; margin: 0 0 10px; }
-        .hero h1 .hl { color: var(--elec); }
-        .hero .sub { color: var(--soft); max-width: 640px; }
+        .hero { padding: 30px 0 10px; }
+        .hero .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--faint); margin-bottom: 10px; letter-spacing: 0.08em; }
+        .hero h1 { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: clamp(30px, 5vw, 50px); line-height: 1.12; margin: 0 0 12px; }
+        .hero h1 .hl { color: var(--gold); }
+        .hero .sub { color: var(--soft); max-width: 660px; }
 
         .panel {
-            background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
-            box-shadow: 4px 4px 0 var(--ink); padding: 22px; margin-top: 24px;
+            background: var(--panel); border: 1.5px solid var(--line); border-radius: 16px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 24px; margin-top: 26px;
         }
-        .panel h2 { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.12em; color: var(--elec); margin: 0 0 14px; }
+        .panel h2 { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: 0.14em; color: var(--gold); margin: 0 0 16px; }
 
-        .flash { border: 2px solid var(--ink); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; background: var(--butter); font-size: 14px; }
-        .flash.warning { background: var(--coral-soft); }
+        .flash { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; background: var(--panel-2); font-size: 14px; }
+        .flash.warning { background: rgba(255,123,114,0.12); color: var(--coral); }
+        .flash-success { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; background: rgba(123,216,143,0.08); font-size: 14px; }
 
         .dropzone {
             display: block;
-            border: 2px dashed var(--ink); border-radius: 12px; background: var(--sand-soft);
-            padding: 26px 16px; text-align: center; cursor: pointer; transition: background 0.15s;
+            border: 2px dashed rgba(245,184,65,0.45); border-radius: 14px; background: var(--panel-2);
+            padding: 30px 16px; text-align: center; cursor: pointer; transition: background 0.15s, border-color 0.15s;
         }
-        .dropzone:hover, .dropzone.dragover { background: var(--butter); }
-        .dropzone .dz-ico { font-size: 34px; }
-        .dropzone .dz-title { font-weight: 700; margin-top: 6px; }
-        .dropzone .dz-sub { font-size: 12.5px; color: var(--faint); font-family: "JetBrains Mono", monospace; margin-top: 3px; }
+        .dropzone:hover, .dropzone.dragover { background: rgba(245,184,65,0.06); border-color: var(--gold); }
+        .dropzone .dz-ico { font-size: 36px; }
+        .dropzone .dz-title { font-weight: 700; margin-top: 8px; }
+        .dropzone .dz-sub { font-size: 12.5px; color: var(--faint); font-family: "JetBrains Mono", monospace; margin-top: 4px; }
         #audio_file { display: none; }
+        .file-info { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--sage); margin-top: 10px; min-height: 16px; }
 
-        .tala-row { display: flex; align-items: center; gap: 10px; margin: 16px 0 4px; flex-wrap: wrap; }
-        .tala-row label { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--soft); }
+        .tala-row { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; flex-wrap: wrap; }
+        .tala-row label { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--faint); }
         select {
-            font: 500 13.5px "DM Sans"; padding: 8px 10px; border-radius: 9px;
-            border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
+            font: 500 13.5px "DM Sans"; padding: 9px 12px; border-radius: 10px;
+            border: 1.5px solid var(--line); background: var(--panel-2); color: var(--text);
         }
-        .limits { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--faint); margin: 10px 0 0; }
+        .limits { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--faint); margin: 12px 0 0; }
         .btn-primary {
-            width: 100%; margin-top: 16px;
-            font: 700 15px "DM Sans"; padding: 12px; border-radius: 11px;
-            border: 2px solid var(--ink); background: var(--elec); color: #fff;
-            box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: transform 0.08s, box-shadow 0.08s;
+            width: 100%; margin-top: 18px;
+            font: 700 15px "DM Sans"; padding: 13px; border-radius: 12px;
+            border: none; background: var(--gold); color: #14141c;
+            box-shadow: 0 8px 24px rgba(245,184,65,0.25); cursor: pointer;
+            transition: transform 0.08s, box-shadow 0.08s;
         }
-        .btn-primary:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
-        .btn-primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
-        .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(245,184,65,0.3); }
+        .btn-primary:disabled { opacity: 0.55; cursor: wait; transform: none; }
 
-        .foot { margin-top: 26px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--faint); text-align: center; }
-        .foot a { color: var(--elec); }
-
-        .flash-success { border: 2px solid var(--ink); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; background: var(--sage-soft); font-size: 14px; }
+        .foot { margin-top: 30px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--faint); text-align: center; }
+        .foot a { color: var(--gold); }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <div class="logo-tile">M<span class="dot"></span></div>
-        <div class="brand">Melo<span>Master</span></div>
+        <div class="logo-tile">S</div>
+        <div class="brand">Swara<span>Lab</span></div>
         <div class="spacer"></div>
         <a class="logout-btn" href="index.php?logout=1">Log out</a>
     </div>
 
     <div class="hero">
-        <div class="kicker">MELOMASTER // recordings &rarr; notes &rarr; sargam &rarr; raga</div>
-        <h1>Upload a recording.<br>Get the <span class="hl">sargam</span> you can play.</h1>
-        <p class="sub">Notes, MIDI, and a raga shortlist from any short recording. Sargam is shown in your alto's written scale (base A#), grouped beatwise carnatic style, with the tala detected from the audio.</p>
+        <div class="kicker">SWARA LAB // recordings &rarr; swaras &rarr; raga</div>
+        <h1>Upload a recording.<br>Get the <span class="hl">swaras</span> you can play.</h1>
+        <p class="sub">Notes, MIDI, and a raga shortlist from any short recording. Swaras are shown in your alto's written scale (base A#), grouped beatwise carnatic style, with the tala detected from the audio.</p>
     </div>
 
     <div class="panel">

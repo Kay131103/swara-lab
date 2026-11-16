@@ -60,112 +60,113 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MeloMaster — transcription</title>
+    <title>Swara Lab — transcription</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --cream: #FAF8F5; --paper: #FFFDF9; --ink: #1A1A1A; --soft: #4A4A4A; --faint: #8A8A8A;
-            --elec: #2563EB; --elec-soft: #DBEAFE; --coral: #F87171; --coral-soft: #FEE2E2;
-            --sage: #86EFAC; --sage-soft: #DCFCE7; --butter: #FDE68A; --butter-dark: #FACC15;
-            --sand: #E7D8C9; --sand-soft: #F5EDE4;
+            --bg: #101016; --panel: #17171f; --panel-2: #1d1d29;
+            --line: rgba(255,255,255,0.09);
+            --text: #ECECF2; --soft: #A6A6B4; --faint: #6E6E80;
+            --gold: #F5B841; --gold-dim: rgba(245,184,65,0.16);
+            --elec: #8B9BFF; --sage: #7BD88F; --coral: #FF7B72;
         }
         * { box-sizing: border-box; }
         body {
-            margin: 0; padding: 0 18px 60px;
-            background: var(--cream); color: var(--ink);
-            font: 15px/1.6 "DM Sans", system-ui, sans-serif;
+            margin: 0; padding: 0 18px 60px; min-height: 100vh;
+            background: radial-gradient(900px 500px at 80% -10%, #1c1c2a 0%, var(--bg) 60%);
+            color: var(--text); font: 15px/1.6 "DM Sans", system-ui, sans-serif;
         }
         .wrap { max-width: 920px; margin: 0 auto; }
-        .topbar { display: flex; align-items: center; gap: 10px; padding: 18px 0 6px; }
+        .topbar { display: flex; align-items: center; gap: 12px; padding: 22px 0 8px; }
         .logo-tile {
-            width: 40px; height: 40px; border-radius: 11px; background: var(--elec);
-            display: grid; place-items: center; color: #fff; font-weight: 800;
-            font-family: "Plus Jakarta Sans"; font-size: 17px;
-            border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); position: relative;
+            width: 42px; height: 42px; border-radius: 12px; background: var(--gold);
+            display: grid; place-items: center; color: #14141c; font-weight: 800;
+            font-family: "Plus Jakarta Sans"; font-size: 18px; box-shadow: 0 6px 18px rgba(245,184,65,0.25);
         }
-        .logo-tile .dot { position: absolute; right: 6px; bottom: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
         .brand { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: 19px; }
-        .brand span { color: var(--elec); }
+        .brand span { color: var(--gold); }
         .spacer { flex: 1; }
         .logout-btn {
-            font: 700 12.5px "DM Sans"; padding: 7px 14px; border-radius: 999px;
-            border: 2px solid var(--ink); background: var(--paper); color: var(--ink);
-            box-shadow: 2px 2px 0 var(--ink); cursor: pointer; text-decoration: none;
+            font: 700 12.5px "DM Sans"; padding: 8px 15px; border-radius: 999px;
+            border: 1.5px solid var(--line); background: var(--panel); color: var(--soft);
+            cursor: pointer; text-decoration: none; transition: border-color 0.15s, color 0.15s;
         }
-        .hero { padding: 20px 0 4px; }
-        .hero .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--faint); margin-bottom: 8px; }
-        .hero h1 { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: clamp(26px, 4vw, 40px); margin: 0 0 6px; }
+        .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+        .hero { padding: 26px 0 6px; }
+        .hero .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--faint); margin-bottom: 10px; letter-spacing: 0.08em; }
+        .hero h1 { font-family: "Plus Jakarta Sans"; font-weight: 800; font-size: clamp(26px, 4vw, 40px); margin: 0 0 4px; }
 
         .panel {
-            background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
-            box-shadow: 4px 4px 0 var(--ink); padding: 20px; margin-top: 18px;
+            background: var(--panel); border: 1.5px solid var(--line); border-radius: 16px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 22px; margin-top: 20px;
         }
-        .panel h2 { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.12em; color: var(--elec); margin: 0 0 14px; }
-        .alert { border: 2px solid var(--ink); border-radius: 10px; padding: 10px 14px; background: var(--coral-soft); font-size: 14px; }
-        .status { border: 2px solid var(--ink); border-radius: 10px; padding: 10px 14px; background: var(--butter); font-size: 14px; }
+        .panel h2 { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: 0.14em; color: var(--gold); margin: 0 0 14px; }
+        .alert { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; background: rgba(255,123,114,0.1); color: var(--coral); font-size: 14px; }
+        .status { border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--gold-dim); color: var(--gold); font-size: 14px; }
         .done-line { font-size: 14.5px; color: var(--soft); margin: 0 0 12px; }
-        .done-line b { color: var(--ink); }
+        .done-line b { color: var(--text); }
 
-        audio { width: 100%; margin: 6px 0 4px; }
+        audio { width: 100%; margin: 4px 0 6px; border-radius: 10px; }
         .midi-btn {
             display: inline-flex; align-items: center; gap: 7px;
-            font: 700 13.5px "DM Sans"; padding: 9px 16px; border-radius: 10px;
-            border: 2px solid var(--ink); background: var(--butter); color: var(--ink);
-            box-shadow: 3px 3px 0 var(--ink); cursor: pointer; text-decoration: none;
+            font: 700 13.5px "DM Sans"; padding: 10px 16px; border-radius: 10px;
+            border: 1.5px solid var(--gold); background: transparent; color: var(--gold);
+            cursor: pointer; text-decoration: none; transition: background 0.15s;
         }
-        .midi-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+        .midi-btn:hover { background: var(--gold-dim); }
 
         #notes { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
         .beat-group {
             display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap;
-            padding: 10px 12px; border: 1.5px dashed var(--ink); border-radius: 10px; background: var(--sand-soft);
+            padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel-2);
         }
         .swara-chip {
-            display: block; text-align: center; min-width: 4.2rem;
-            padding: 6px 8px; border: 2px solid var(--ink); border-radius: 9px;
-            background: var(--paper); color: var(--ink); cursor: pointer; transition: transform 0.08s, background 0.15s;
+            display: block; text-align: center; min-width: 4.4rem;
+            padding: 8px 9px; border: 1.5px solid var(--line); border-radius: 10px;
+            background: var(--bg); color: var(--text); cursor: pointer; transition: transform 0.08s, border-color 0.15s, background 0.15s;
         }
-        .swara-chip:hover { transform: translateY(-2px); background: var(--butter); }
-        .swara-chip.active { background: var(--elec); color: #fff; }
-        .swara-chip.active .syl, .swara-chip.active .nn, .swara-chip.active .dur { color: #fff; }
-        .swara-chip .syl { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 14px; color: var(--elec); }
-        .swara-chip .nn { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
+        .swara-chip:hover { transform: translateY(-2px); border-color: var(--gold); background: rgba(245,184,65,0.06); }
+        .swara-chip.active { background: var(--gold); border-color: var(--gold); }
+        .swara-chip.active .syl, .swara-chip.active .nn, .swara-chip.active .dur { color: #14141c; }
+        .swara-chip .syl { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 14.5px; color: var(--gold); }
+        .swara-chip .nn { font-size: 11.5px; font-weight: 700; margin-top: 2px; }
         .swara-chip .dur { font-size: 10px; color: var(--faint); font-family: "JetBrains Mono", monospace; }
-        .bar-sep { align-self: center; font-size: 1.3rem; font-weight: 800; color: var(--soft); padding: 0 2px; }
+        .bar-sep { align-self: center; font-size: 1.3rem; font-weight: 800; color: var(--faint); padding: 0 2px; }
 
         .raga-card {
-            background: var(--paper); border: 2px solid var(--ink); border-radius: 14px;
-            box-shadow: 4px 4px 0 var(--ink); padding: 18px; margin-top: 16px;
+            background: var(--panel); border: 1.5px solid var(--line); border-radius: 16px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.35); padding: 20px; margin-top: 20px;
         }
-        .raga-card h2 { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.12em; color: var(--elec); margin: 0 0 12px; }
-        .raga-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
-        .raga-row b { min-width: 8.5rem; font-size: 13.5px; }
-        .raga-bar { flex: 1; height: 14px; border: 2px solid var(--ink); border-radius: 7px; background: var(--sand-soft); overflow: hidden; }
-        .raga-bar > div { height: 100%; background: var(--elec); }
-        .raga-row .pct { font-family: "JetBrains Mono", monospace; font-size: 11px; width: 52px; text-align: right; }
-        .raga-note { font-size: 12px; color: var(--faint); margin-top: 10px; }
-        .gemini { border: 1.5px dashed var(--ink); border-radius: 10px; padding: 10px 13px; margin-top: 12px; background: var(--lav-soft, #EDE9FE); font-size: 13px; }
-        .caveat { font-style: italic; color: var(--soft); }
+        .raga-card h2 { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: 0.14em; color: var(--gold); margin: 0 0 12px; }
+        .raga-row { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+        .raga-row b { min-width: 9rem; font-size: 13.5px; }
+        .raga-bar { flex: 1; height: 14px; border: 1.5px solid var(--line); border-radius: 7px; background: var(--panel-2); overflow: hidden; }
+        .raga-bar > div { height: 100%; background: var(--gold); }
+        .raga-row .pct { font-family: "JetBrains Mono", monospace; font-size: 11px; width: 52px; text-align: right; color: var(--faint); }
+        .raga-note { font-size: 12px; color: var(--faint); margin-top: 12px; }
+        .gemini { border: 1.5px dashed var(--line); border-radius: 10px; padding: 10px 13px; margin-top: 14px; background: var(--panel-2); font-size: 13px; color: var(--soft); }
+        .caveat { font-style: italic; color: var(--faint); }
 
-        .foot { margin-top: 26px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--faint); text-align: center; }
-        .foot a { color: var(--elec); }
-        .back { font: 700 13px "DM Sans"; color: var(--elec); text-decoration: none; }
+        .foot { margin-top: 30px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--faint); text-align: center; }
+        .foot a { color: var(--gold); }
+        .back { font: 700 13px "DM Sans"; color: var(--gold); text-decoration: none; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <div class="logo-tile">M<span class="dot"></span></div>
-        <div class="brand">Melo<span>Master</span></div>
+        <div class="logo-tile">S</div>
+        <div class="brand">Swara<span>Lab</span></div>
         <div class="spacer"></div>
         <a class="logout-btn" href="index.php?logout=1">Log out</a>
     </div>
 
     <div class="hero">
-        <div class="kicker">MELOMASTER // transcription result</div>
-        <h1>Your recording, transcribed</h1>
+        <div class="kicker">SWARA LAB // transcription result</div>
+        <h1>Your recording, in swaras</h1>
     </div>
 
     <?php if ($job['status'] === 'failed') : ?>
@@ -176,7 +177,7 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
     <?php else : ?>
         <div class="panel">
             <h2>RECORDING</h2>
-            <p class="done-line">Transcription complete — <b><?= $noteCount ?> notes</b><?= $range ? ', range ' . e($range) : '' ?>.</p>
+            <p class="done-line">Transcription complete — <b><?= $noteCount ?> swaras</b><?= $range ? ', range ' . e($range) : '' ?>.</p>
             <?php if ($noteCount === 0) : ?>
                 <p>No clear notes were detected. Try a short recording of a single instrument or voice with less background noise.</p>
             <?php endif ?>
@@ -184,13 +185,13 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
                 Your browser does not support the audio element.
             </audio>
             <?php if ($noteCount > 0) : ?>
-                <p style="margin:10px 0 0;"><a class="midi-btn" href="download.php?id=<?= e($id) ?>&amp;type=midi">Download MIDI</a></p>
+                <p style="margin:12px 0 0;"><a class="midi-btn" href="download.php?id=<?= e($id) ?>&amp;type=midi">Download MIDI</a></p>
             <?php endif ?>
         </div>
 
         <?php if ($noteCount > 0) : ?>
         <div class="panel">
-            <h2>SARGAM — grouped beatwise, your alto's written scale</h2>
+            <h2>SWARAS — grouped beatwise, your alto's written scale</h2>
             <?php $groups = $raga['groups'] ?? null; $beats = $raga['beats'] ?? 4; ?>
             <?php if ($groups) : ?>
                 <p class="done-line" style="margin-top:0;">
@@ -237,7 +238,7 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
             <?php foreach (($raga['candidates'] ?? []) as $i => $cand) : ?>
                 <div class="raga-row">
                     <b><?= ($i + 1) . '. ' . e($cand['name']) ?></b>
-                    <div class="raga-bar"><div style="height:100%; width:<?= (int) round($cand['score'] * 100) ?>%; background:var(--elec);"></div></div>
+                    <div class="raga-bar"><div style="height:100%; width:<?= (int) round($cand['score'] * 100) ?>%; background:var(--gold);"></div></div>
                     <span class="pct"><?= round($cand['score'] * 100) ?>% fit</span>
                 </div>
             <?php endforeach ?>
@@ -257,8 +258,9 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
         <?php endif ?>
     <?php endif ?>
 
-    <p style="margin-top:24px;"><a class="back" href="index.php">&larr; back to MeloMaster</a></p>
-    <div class="foot">part of the <a href="https://portfolio.krithiuk.space">krithiuk.space</a> lab</div>
+    <p style="margin-top:26px;"><a class="back" href="index.php">&larr; back to Swara Lab</a></p>
+    <div class="foot">part of the <a href="https://portfolio.krithiuk.space">krithiuk.space</a> lab ·
+    sax lab · autograd · judge · krithi.os</div>
 </div>
 
 <script>

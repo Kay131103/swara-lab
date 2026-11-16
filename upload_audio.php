@@ -138,11 +138,17 @@ set_time_limit(270);
 $audioBlobPath = "users/$userId/$jobId/audio.$ext";
 $midiBlobPath = "users/$userId/$jobId/result.mid";
 try {
+    $tala = isset($_POST['tala']) ? (int) $_POST['tala'] : 4;
+    if ($tala < 2 || $tala > 16) {
+        $tala = 4;
+    }
     $result = run_python_json($config, 'process_audio.py', [
         $audioPath,
         $midiPath,
         '--max-duration',
         (string) $config['max_audio_seconds'],
+        '--beats',
+        (string) $tala,
     ]);
     $notes = $result['notes'];
     $raga = isset($result['raga']) ? $result['raga'] : null;

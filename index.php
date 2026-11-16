@@ -203,6 +203,16 @@ $maxSeconds = $config['max_audio_seconds'];
                 </label>
                 <input type="file" id="audio_file" name="audio_file" accept=".mp3,.wav,.ogg,.flac,.m4a,audio/*" required>
                 <div class="file-info" id="fileInfo"></div>
+                <div style="margin:.6rem 0;">
+                    <label for="tala" style="font-size:.85rem;"><i class="fas fa-drum"></i> Tala (beats per group):</label>
+                    <select id="tala" name="tala" style="padding:.4rem; border-radius:.4rem; border:1px solid #5C5766;">
+                        <option value="4">Adi / Chaturashra — 4</option>
+                        <option value="3">Tisra / Rupaka — 3</option>
+                        <option value="5">Khanda — 5</option>
+                        <option value="7">Misra — 7</option>
+                        <option value="9">Sankeerna — 9</option>
+                    </select>
+                </div>
                 <p>Maximum <?= (int) $maxMb ?> MB and <?= (int) $maxSeconds ?> seconds. Transcription runs before the page loads.</p>
                 <button type="submit" id="uploadButton">Upload</button>
             </form>

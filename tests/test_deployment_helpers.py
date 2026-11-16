@@ -22,7 +22,7 @@ def test_audio_duration_rejects_nonfinite_value(monkeypatch, tmp_path):
 def test_transcribe_rejects_audio_above_configured_duration(monkeypatch, tmp_path):
     monkeypatch.setattr(process_audio, "audio_duration", lambda path: 30.1)
     with pytest.raises(ValueError, match="30 seconds or shorter"):
-        process_audio.transcribe(tmp_path / "song.wav", tmp_path / "song.mid", 30)
+        process_audio.run_transcription(tmp_path / "song.wav", tmp_path / "song.mid", 30)
 
 
 def test_transcribe_passes_deadline_and_returns_notes(monkeypatch, tmp_path):
@@ -39,7 +39,7 @@ def test_transcribe_passes_deadline_and_returns_notes(monkeypatch, tmp_path):
 
     monkeypatch.setattr(process_audio.subprocess, "run", fake_run)
 
-    notes = process_audio.transcribe(audio, midi, 30)
+    notes = process_audio.run_transcription(audio, midi, 30)
 
     assert notes == [{"note": "A4"}]
     assert captured["timeout"] == process_audio.TRANSCRIPTION_TIMEOUT

@@ -73,6 +73,7 @@ def main(argv=None):
     parser.add_argument("audio_path")
     parser.add_argument("midi_path")
     parser.add_argument("--max-duration", type=int, required=True)
+    parser.add_argument("--beats", type=int, default=4, help="swaras per beat group (tala gati)")
     args = parser.parse_args(argv)
     try:
         notes = run_transcription(args.audio_path, args.midi_path, args.max_duration)
@@ -82,6 +83,7 @@ def main(argv=None):
     # transpose concert -> written pitch (+9) so every note is playable on
     # the alto saxophone, and the scale names match what the player fingers
     transpose = int(os.environ.get("SAX_TRANSPOSE", "9"))
+    beats = max(2, min(16, args.beats))
     for n in notes:
         n["midi"] += transpose
         pc = n["midi"] % 12
@@ -104,7 +106,6 @@ def main(argv=None):
         raga_out["sargam_sa_midi"] = sa_midi
 
     # beatwise grouping, carnatic-notation style (default: 4 swaras per group)
-    beats = int(os.environ.get("SAX_BEATS", "4"))
     raga_out["beats"] = beats
     raga_out["groups"] = [
         list(range(i, min(i + beats, len(notes))))

@@ -42,7 +42,7 @@ RAGAS = [
 ]
 
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-SWARA_STHANAS = ["S", "R1", "R2", "R3", "G3", "M1", "M2", "P", "D1", "D2", "D3", "N3"]
+SWARA_STHANAS = ["S", "Ra(Shu)", "Ri(Chat)", "Ru(Shat)", "Gu(Ant)", "Ma(Shu)", "Ma(Pra)", "P", "Dha(Shu)", "Di(Chat)", "Du(Shat)", "Nu(Kak)"]
 
 
 def note_name(midi):

@@ -39,8 +39,10 @@ SARGAM = ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni"]
 # octave-wrapped: 12 -> Sa', 13 -> re' ... exactly like Sax Lab's labels.
 # Carnatic 12 swara sthanas (matches Sax Lab / raga.py naming)
 _OFFSET_SYLLABLE = {
-    0: "Sa", 1: "Ri1", 2: "Ri2", 3: "Ri3", 4: "Ga", 5: "Ma1",
-    6: "Ma2", 7: "Pa", 8: "Da1", 9: "Da2", 10: "Da3", 11: "Ni3",
+    0: "S",
+    1: "Ra(Shu)", 2: "Ri(Chat)", 3: "Ru(Shat)",
+    4: "Gu(Ant)", 5: "Ma(Shu)", 6: "Ma(Pra)", 7: "P",
+    8: "Dha(Shu)", 9: "Di(Chat)", 10: "Du(Shat)", 11: "Nu(Kak)",
 }
 
 

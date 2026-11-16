@@ -63,6 +63,15 @@ backend, set `MAX_CONCURRENT_JOBS_PER_USER` (default 1),
 
 Run the transcription tests with `python -m pytest`.
 
+## Raga detection (uploaded audio)
+
+Every transcription now includes a raga analysis: tonic estimation (duration-weighted),
+a swara histogram relative to it, and a ranked shortlist of matching ragas (18-raga
+library, same set-matching method as Sax Lab). If `GEMINI_API_KEY` is set, an optional
+LLM-assisted opinion (with its own confidence + caveat) is merged in. Honest limits:
+works best on solo/classical recordings — film songs with heavy accompaniment get an
+approximate shortlist.
+
 ## Sargam output & intonation data
 
 The transcriber also speaks Sax Lab's language:

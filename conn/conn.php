@@ -198,7 +198,7 @@ function run_python_json($config, $script, $arguments)
     $result = json_decode($stdout, true);
     if ($exitCode !== 0 || !is_array($result)) {
         error_log("$script failed ($exitCode): $stderr $stdout");
-        throw new RuntimeException(isset($result['error']) ? $result['error'] : 'Audio processing failed.');
+        throw new RuntimeException(isset($result['error']) ? $result['error'] : ('Audio processing failed (exit ' . $exitCode . '): ' . substr($stderr, -140)));
     }
     return $result;
 }

@@ -190,8 +190,7 @@ try {
     update_job_failure(
         $conn,
         $jobId,
-        'Could not transcribe this audio. Check that it is a supported recording no longer than '
-            . $config['max_audio_seconds'] . ' seconds.'
+        'Transcription failed: ' . substr($error->getMessage(), 0, 180)
     );
 } finally {
     foreach ([$audioPath, $midiPath] as $tempPath) {

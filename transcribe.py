@@ -37,9 +37,10 @@ FRAME_LENGTH = 2048
 SARGAM = ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni"]
 # semitone offset from Sa -> sargam syllable (with komal/tivra marks),
 # octave-wrapped: 12 -> Sa', 13 -> re' ... exactly like Sax Lab's labels.
+# Carnatic 12 swara sthanas (matches Sax Lab / raga.py naming)
 _OFFSET_SYLLABLE = {
-    0: "Sa", 1: "re", 2: "Re", 3: "ga", 4: "Ma", 5: "Pa",
-    6: "dha", 7: "Dha", 8: "ni", 9: "Ni", 10: "Re'", 11: "Ga'",
+    0: "Sa", 1: "Ri1", 2: "Ri2", 3: "Ri3", 4: "Ga", 5: "Ma1",
+    6: "Ma2", 7: "Pa", 8: "Da1", 9: "Da2", 10: "Da3", 11: "Ni3",
 }
 
 

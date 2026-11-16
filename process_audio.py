@@ -3,12 +3,14 @@
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
-from raga import analyze_raga  # noqa: E402
+from raga import analyze_raga, NOTE_NAMES, SWARA_STHANAS  # noqa: E402
+from transcribe import sargam_name  # noqa: E402
 
 TRANSCRIPTION_TIMEOUT = 240
 
@@ -36,7 +38,7 @@ def audio_duration(path):
     return duration
 
 
-def transcribe(audio_path, midi_path, max_duration):
+def run_transcription(audio_path, midi_path, max_duration):
     duration = audio_duration(audio_path)
     if duration > max_duration:
         raise ValueError(f"Audio must be {max_duration} seconds or shorter.")
@@ -73,11 +75,43 @@ def main(argv=None):
     parser.add_argument("--max-duration", type=int, required=True)
     args = parser.parse_args(argv)
     try:
-        notes = transcribe(args.audio_path, args.midi_path, args.max_duration)
+        notes = run_transcription(args.audio_path, args.midi_path, args.max_duration)
     except Exception as error:
         print(json.dumps({"error": str(error)}))
         return 1
-    print(json.dumps({"notes": notes, "raga": analyze_raga(notes)}, separators=(",", ":")))
+    # transpose concert -> written pitch (+9) so every note is playable on
+    # the alto saxophone, and the scale names match what the player fingers
+    transpose = int(os.environ.get("SAX_TRANSPOSE", "9"))
+    for n in notes:
+        n["midi"] += transpose
+        pc = n["midi"] % 12
+        n["note"] = NOTE_NAMES[pc] + str(n["midi"] // 12 - 1)
+
+    raga_out = analyze_raga(notes)
+
+    # sargam for every note, relative to the detected tonic (in written pitch)
+    if raga_out.get("tonic") and notes:
+        tonic_pc = NOTE_NAMES.index(raga_out["tonic"])
+        first = notes[0]["midi"]
+        sa_midi = first - ((first - tonic_pc) % 12)
+        raga_out["sa"] = NOTE_NAMES[sa_midi % 12] + str(sa_midi // 12 - 1)
+        for n in notes:
+            syl, tag = sargam_name(n["midi"], sa_midi)
+            sthana = SWARA_STHANAS[(n["midi"] - sa_midi) % 12]
+            n["sargam"] = syl
+            n["sthana"] = sthana
+            n["octaveTag"] = tag
+        raga_out["sargam_sa_midi"] = sa_midi
+
+    # beatwise grouping, carnatic-notation style (default: 4 swaras per group)
+    beats = int(os.environ.get("SAX_BEATS", "4"))
+    raga_out["beats"] = beats
+    raga_out["groups"] = [
+        list(range(i, min(i + beats, len(notes))))
+        for i in range(0, len(notes), beats)
+    ]
+
+    print(json.dumps({"notes": notes, "raga": raga_out}, separators=(",", ":")))
     return 0
 
 

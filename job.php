@@ -55,6 +55,16 @@ if ($noteCount) {
         .note { padding: .5rem; border: 0; border-radius: .5rem; background: white; color: inherit; cursor: pointer; }
         .note.active { background: #E69A8D; color: white; }
         .raga-card { margin-top: 1rem; padding: 1rem; border: 1px solid #5C5766; border-radius: .6rem; background: #fff; }
+        #notes { display: flex; flex-direction: column; gap: .4rem; }
+        .beat-group { display: flex; align-items: flex-end; gap: .35rem; padding: .35rem .5rem; border: 1px dashed #5C5766; border-radius: .5rem; }
+        .swara-chip { display: block; text-align: center; min-width: 3rem; padding: .35rem .4rem; border: 0; border-radius: .4rem; background: white; color: inherit; cursor: pointer; }
+        .swara-chip .syl { font-family: monospace; font-weight: 700; font-size: .95rem; color: #2563EB; }
+        .swara-chip .nn { font-size: .72rem; color: #5C5766; }
+        .swara-chip .dur { font-size: .65rem; color: #8A8A8A; font-family: monospace; }
+        .swara-chip.active { background: #E69A8D; color: white; }
+        .swara-chip.active .syl, .swara-chip.active .nn, .swara-chip.active .dur { color: white; }
+        .sep { color: #8A8A8A; }
+        .bar-sep { align-self: center; font-size: 1.2rem; font-weight: 700; color: #5C5766; }
         audio { width: 100%; margin-top: 1rem; }
     </style>
 </head>
@@ -101,15 +111,40 @@ if ($noteCount) {
                     <p style="font-size:.85rem; color:#8A8A8A;">percentages are a shortlist, not a verdict — works best on solo / classical recordings; film songs with heavy accompaniment make this approximate.</p>
                 </div>
             <?php endif ?>
-            <div id="notes">
-                <?php foreach ($notes as $note) : ?>
-                    <button class="note" type="button" data-start="<?= e($note['start']) ?>"
-                            data-end="<?= e($note['end']) ?>"
-                            title="<?= e(sprintf('%.2fs, %.1f Hz', $note['start'], $note['frequency'])) ?>">
-                        <?= e($note['note']) ?>
-                    </button>
-                <?php endforeach ?>
-            </div>
+            <?php $groups = $raga['groups'] ?? null; $beats = $raga['beats'] ?? 4; ?>
+            <?php if ($groups) : ?>
+                <p style="font-size:.85rem; color:#8A8A8A; margin-bottom:.6rem;">
+                    sargam relative to Sa = <b><?= e($raga['sa']) ?></b> (your alto's written pitch) ·
+                    grouped <?= (int) $beats ?> swaras per beat, carnatic style.
+                </p>
+                <div id="notes">
+                    <?php foreach ($groups as $gi => $group) : ?>
+                        <div class="beat-group">
+                            <?php foreach ($group as $ni) : $note = $notes[$ni]; ?>
+                                <button class="note swara-chip" type="button" data-start="<?= e($note['start']) ?>"
+                                        data-end="<?= e($note['end']) ?>"
+                                        title="<?= e(sprintf('%.2fs, %.1f Hz', $note['start'], $note['frequency'])) ?>">
+                                    <div class="syl"><?= e($note['sargam'] ?: $note['note']) ?></div>
+                                    <div class="nn"><?= e($note['note']) ?></div>
+                                    <div class="dur"><?= e(sprintf('%.1fs', $note['duration'])) ?></div>
+                                </button>
+                                <?php if ($ni !== end($group)) : ?><span class="sep">·</span><?php endif ?>
+                            <?php endforeach ?>
+                        </div>
+                        <span class="bar-sep">|</span>
+                    <?php endforeach ?>
+                </div>
+            <?php else : ?>
+                <div id="notes">
+                    <?php foreach ($notes as $note) : ?>
+                        <button class="note" type="button" data-start="<?= e($note['start']) ?>"
+                                data-end="<?= e($note['end']) ?>"
+                                title="<?= e(sprintf('%.2fs, %.1f Hz', $note['start'], $note['frequency'])) ?>">
+                            <?= e($note['note']) ?>
+                        </button>
+                    <?php endforeach ?>
+                </div>
+            <?php endif ?>
         <?php endif ?>
     <?php endif ?>
     <p><a href="index.php">Back to MeloMaster</a></p>

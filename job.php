@@ -20,9 +20,16 @@ if (!$job) {
 }
 
 $notes = [];
+    $raga = null;
 if ($job['status'] === 'completed') {
     try {
-        $notes = json_decode($job['notes_json'], true, 512, JSON_THROW_ON_ERROR);
+            $decoded = json_decode($job['notes_json'], true, 512, JSON_THROW_ON_ERROR);
+            if (isset($decoded['notes'], $decoded['raga'])) {
+                $notes = $decoded['notes'];
+                $raga = is_array($decoded['raga']) ? $decoded['raga'] : null;
+            } else {
+                $notes = $decoded;
+            }
         if (!is_array($notes)) {
             throw new UnexpectedValueException('Stored notes are not a list.');
         }

@@ -68,6 +68,17 @@ try {
     exit('Database connection failed.');
 }
 
+/* apply the schema on first boot so app_sessions exists before session_start */
+try {
+    $conn->query('SELECT 1 FROM tbl_user LIMIT 1');
+} catch (Throwable $schemaMissing) {
+    $schemaFile = __DIR__ . '/../login_email_verification.sql';
+    if (is_file($schemaFile)) {
+        $conn->exec(file_get_contents($schemaFile));
+    }
+}
+
+
 require_once __DIR__ . '/PostgresSessionHandler.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_set_save_handler(new PostgresSessionHandler($conn), true);
@@ -80,15 +91,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 /* --- demo mode: schema auto-applies, login removed, everyone shares
        a single guest account. Remove this block to restore login. --- */
-try {
-    $conn->query('SELECT 1 FROM tbl_user LIMIT 1');
-} catch (Throwable $schemaMissing) {
-    $schemaFile = __DIR__ . '/../login_email_verification.sql';
-    if (is_file($schemaFile)) {
-        $conn->exec(file_get_contents($schemaFile));
-    }
-}
-
 try {
     $conn->prepare(
         "INSERT INTO tbl_user (first_name, last_name, email, username, password, verification_code, verified)

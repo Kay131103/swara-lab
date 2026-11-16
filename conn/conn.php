@@ -23,9 +23,6 @@ if ($config['app_env'] === 'production') {
     if (empty($config['db']['url'])) {
         throw new RuntimeException('Production requires a PostgreSQL connection URL.');
     }
-    if (empty($config['smtp']['enabled']) || empty($config['smtp']['user']) || empty($config['smtp']['pass']) || empty($config['smtp']['from_email'])) {
-        throw new RuntimeException('Production requires SMTP_ENABLED and complete SMTP credentials.');
-    }
 }
 
 try {
@@ -79,6 +76,34 @@ if (session_status() === PHP_SESSION_NONE) {
         'cookie_samesite' => 'Lax',
         'cookie_secure' => $config['app_env'] === 'production',
     ]);
+}
+
+/* --- demo mode: schema auto-applies, login removed, everyone shares
+       a single guest account. Remove this block to restore login. --- */
+try {
+    $conn->query('SELECT 1 FROM tbl_user LIMIT 1');
+} catch (Throwable $schemaMissing) {
+    $schemaFile = __DIR__ . '/../login_email_verification.sql';
+    if (is_file($schemaFile)) {
+        $conn->exec(file_get_contents($schemaFile));
+    }
+}
+
+try {
+    $conn->prepare(
+        "INSERT INTO tbl_user (first_name, last_name, email, username, password, verification_code, verified)
+         VALUES ('Guest', 'User', 'guest@melomaster.local', 'guest', '', '000000', true)
+         ON CONFLICT (email) DO NOTHING"
+    )->execute();
+    $stmt = $conn->prepare('SELECT tbl_user_id FROM tbl_user WHERE email = 'guest@melomaster.local' LIMIT 1');
+    $stmt->execute();
+    $guestId = $stmt->fetchColumn();
+    if ($guestId && !isset($_SESSION['user_id'])) {
+        $_SESSION['user_id'] = (int) $guestId;
+        $_SESSION['username'] = 'guest';
+    }
+} catch (Throwable $e) {
+    error_log('Demo-mode guest login failed: ' . $e->getMessage());
 }
 
 /** HTML-escape a value for output. */

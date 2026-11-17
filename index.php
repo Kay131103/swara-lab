@@ -224,7 +224,6 @@ $maxSeconds = $config['max_audio_seconds'];
     convPanel.insertBefore(revLabel, convPanel.querySelector('#convRev'));
     convPanel.insertBefore(revSel, convPanel.querySelector('#convRev'));
     convSa.addEventListener('change', updateConv);
-    convRaga.addEventListener('change', updateConv);
     revSel.addEventListener('change', updateConv);
     updateConv();
 

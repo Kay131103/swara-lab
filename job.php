@@ -261,6 +261,28 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
 
     <!-- SAX CONVERTER — shown right after the transcription -->
     <div class="panel">
+        <h2>RE-ANCHOR — YOUR RECORDING IN ANY KEY</h2>
+        <p style="margin:0 0 14px; color:var(--soft); font-size:14px">The tonic was auto-detected as
+        <b><?= e($raga['sa']) ?></b>. If your recording sits differently on your alto — your instrument's base is
+        <b>A#</b> — pick the true tonic below and every transcribed swara re-labels instantly. The pitches never move;
+        only their names relative to Sa do.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:flex-end">
+            <div style="flex:1; min-width:200px">
+                <label style="display:block; font:700 10.5px 'JetBrains Mono'; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px">re-anchor Sa to</label>
+                <select id="anchorTonic" style="width:100%; font:500 14px 'DM Sans'; padding:9px 11px; border-radius:10px; border:1.5px solid var(--line); background:var(--panel-2); color:var(--text)"></select>
+            </div>
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-family:'JetBrains Mono'; font-size:12.5px">
+            <thead><tr>
+                <th style="text-align:left; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); border-bottom:1.5px solid var(--line); padding:6px 8px">#</th>
+                <th style="text-align:left; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); border-bottom:1.5px solid var(--line); padding:6px 8px">written note</th>
+                <th style="text-align:left; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); border-bottom:1.5px solid var(--line); padding:6px 8px">swara relative to the chosen Sa</th>
+            </tr></thead>
+            <tbody id="anchorRows"></tbody>
+        </table>
+    </div>
+
+    <div class="panel">
         <h2>SAX CONVERTER — SWARAS &rarr; NOTES ON YOUR ALTO</h2>
         <p style="margin:0 0 14px; color:var(--soft); font-size:14px">Sa is auto-detected from <b>this transcription</b> —
         the ladder shows all 12 swaras: what each is called, how far above Sa it sits, and the written note to finger.
@@ -400,6 +422,34 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
     revSel.addEventListener('change', updateConv);
     updateConv();
 
+
+    /* re-anchor: the transcribed notes, re-labelled against any tonic */
+    var recPitches = [...document.querySelectorAll('.swara-chip .nn')].map(function(e){ return e.textContent.trim(); });
+    var anchorSel = document.getElementById('anchorTonic');
+    var detected = <?= json_encode(isset($raga['sa']) ? $raga['sa'] : 'A4') ?>;
+    ["A#3","B3","C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5","A5"].forEach(function(n){
+        var o = document.createElement('option'); o.value = n; o.textContent = n + (n === detected ? " (detected)" : ""); anchorSel.appendChild(o);
+    });
+    anchorSel.value = detected;
+    function midiOf(v){ var m = v.match(/^([A-G]#?)(\d)$/); return 12*(parseInt(m[2],10)+1) + SEMI[m[1]]; }
+    function swaraFor(pitch, tonicMidi){
+        var off = midiOf(pitch) - tonicMidi;
+        var oct = Math.floor(off/12), wrapped = off - oct*12;
+        var syl = SWARAS[wrapped][0];
+        var tag = oct === 0 ? "" : " (" + (oct > 0 ? "+" : "") + oct + " oct)";
+        return syl + tag;
+    }
+    function updateAnchor(){
+        var tm = midiOf(anchorSel.value);
+        var rows = recPitches.map(function(p, i){
+            return "<tr><td style='color:var(--faint); padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + (i+1) +
+                "</td><td style='padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--elec); font-weight:700'>" + p +
+                "</td><td class='syl' style='color:var(--gold); font-weight:700; padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + swaraFor(p, tm) + "</td></tr>";
+        }).join("");
+        document.getElementById('anchorRows').innerHTML = rows;
+    }
+    anchorSel.addEventListener('change', updateAnchor);
+    updateAnchor();
 
     var player = document.getElementById('audioPlayer');
     if (player) {

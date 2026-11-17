@@ -345,6 +345,9 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
 
     var convSa = document.getElementById('convSa');
     var convScale = document.getElementById('convScale');
+    ["A#3","B3","C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5"].forEach(function(n){
+        var o = document.createElement('option'); o.value = n; o.textContent = n; convSa.appendChild(o);
+    });
     Object.keys(SCALES).forEach(function(k){
         var o = document.createElement('option'); o.value = k; o.textContent = k; convScale.appendChild(o);
     });
@@ -388,6 +391,9 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
             (inS ? " ✓ in the highlighted scale" : " — not in the highlighted scale");
     }
     var revSel = document.getElementById('convRevNote');
+    ["C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5"].forEach(function(n){
+        var o = document.createElement('option'); o.value = n; o.textContent = n; revSel.appendChild(o);
+    });
     var convPanel = document.getElementById('convRows').closest('.panel');
     convSa.addEventListener('change', updateConv);
     convScale.addEventListener('change', updateConv);

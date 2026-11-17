@@ -119,6 +119,11 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
         .midi-btn:hover { background: var(--gold-dim); }
 
         #notes { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .anga-label {
+            font: 700 10px "JetBrains Mono", monospace; letter-spacing: 0.14em;
+            color: var(--gold); margin: 14px 0 6px; text-transform: uppercase;
+        }
+        .anga-sep { display: block; text-align: center; font-size: 1.3rem; font-weight: 800; color: var(--gold); opacity: 0.55; margin: 6px 0; }
         .beat-group {
             display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap;
             padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel-2);
@@ -196,11 +201,23 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
             <?php if ($groups) : ?>
                 <p class="done-line" style="margin-top:0;">
                     sargam relative to Sa = <b><?= e($raga['sa']) ?></b> ·
-                    grouped <?= (int) $beats ?> swaras per beat,
-                    <?= e(($raga['beatsSource'] ?? 'selected') === 'auto-detected' ? 'auto-detected from the audio' : 'tala you selected') ?>.
+                    <?php if (!empty($raga['tala'])) :
+                        $t = $raga['tala']; ?>
+                        tala <b><?= e($t['full']) ?></b> (<?= e($t['confidence']) ?>% pulse confidence) —
+                        <?php foreach ($t['angas'] as $ai => $a) : ?><?= ($ai ? " · " : "") . e($a['label']) . " " . (int) $a['aksharas'] ?><?php endforeach ?>.
+                    <?php else : ?>
+                        grouped <?= (int) $beats ?> swaras per beat,
+                        <?= e(($raga['beatsSource'] ?? 'selected') === 'auto-detected' ? 'auto-detected from the audio' : 'tala you selected') ?>.
+                    <?php endif ?>
                 </p>
                 <div id="notes">
-                    <?php foreach ($groups as $group) : ?>
+                    <?php $ga = $raga['groupAngas'] ?? null; $prevAnga = null; ?>
+                    <?php foreach ($groups as $gi => $group) : ?>
+                        <?php $anga = $ga[$gi] ?? null;
+                        if ($anga && $anga['anga'] !== $prevAnga) :
+                            if ($prevAnga !== null) : ?><span class="anga-sep">‖</span><?php endif ?>
+                            <div class="anga-label"><?= e($anga['label']) ?></div>
+                        <?php $prevAnga = $anga['anga']; endif ?>
                         <div class="beat-group">
                             <?php foreach ($group as $ni) : $note = $notes[$ni]; ?>
                                 <button class="swara-chip" type="button" data-start="<?= e($note['start']) ?>"

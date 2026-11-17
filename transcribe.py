@@ -40,9 +40,9 @@ SARGAM = ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni"]
 # Carnatic 12 swara sthanas (matches Sax Lab / raga.py naming)
 _OFFSET_SYLLABLE = {
     0: "S",
-    1: "Ra(Shu)", 2: "Ri(Chat)", 3: "Ru(Shat)",
-    4: "Gu(Ant)", 5: "Ma(Shu)", 6: "Ma(Pra)", 7: "P",
-    8: "Dha(Shu)", 9: "Di(Chat)", 10: "Du(Shat)", 11: "Nu(Kak)",
+    1: "Ri(Shu)", 2: "Ri(Cha)", 3: "Ri(Shat)",
+    4: "Ga(Ant)", 5: "Ma(Shu)", 6: "Ma(Pra)", 7: "P",
+    8: "Dha(Shu)", 9: "Dha(Cha)", 10: "Dha(Shat)", 11: "Ni(Kak)",
 }
 
 

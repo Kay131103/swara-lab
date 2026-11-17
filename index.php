@@ -210,8 +210,8 @@ $maxSeconds = $config['max_audio_seconds'];
             var concert = written - 9;
             rows += "<tr><td class='syl' style='color:var(--gold); font-weight:700; padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + s[0] +
                     "</td><td class='w' style='color:var(--elec); font-weight:700; padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + noteName(written) +
-                    " (" + Math.floor(written/12) - 0 + ")" +
-                    "</td><td style='color:var(--soft); padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + noteName(concert) + "</td></tr>";
+                    " (" + (Math.floor(written/12) - 1) + ")" +
+                    "</td><td style='color:var(--soft); padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + noteName(concert) + " (" + (Math.floor(concert/12) - 1) + ")" + "</td></tr>";
         }
         document.getElementById('convRows').innerHTML = rows;
         var revNote = document.getElementById('convRevNote').value;

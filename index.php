@@ -113,7 +113,7 @@ $maxSeconds = $config['max_audio_seconds'];
     <div class="hero">
         <div class="kicker">SWARA LAB // recordings &rarr; swaras &rarr; raga</div>
         <h1>Upload a recording.<br>Get the <span class="hl">swaras</span> you can play.</h1>
-        <p class="sub">Notes, MIDI, and a raga shortlist from any short recording. Swaras are shown in your alto's written scale (base A#), grouped beatwise carnatic style, with the tala detected from the audio.</p>
+        <p class="sub">Notes, MIDI, and a raga shortlist from any short recording. Swaras are shown in your alto's written scale (base A#), grouped beatwise carnatic style, with the tala detected from the audio. The <b>sax converter</b> below turns your Sa into the exact written notes (C, C#, D#…) to finger — and tells you which swara any written note is.</p>
     </div>
 
     <div class="panel">
@@ -153,12 +153,8 @@ $maxSeconds = $config['max_audio_seconds'];
         &rarr; which swara it is.</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px">
             <div style="flex:1; min-width:170px">
-                <label style="display:block; font:700 10.5px 'JetBrains Mono'; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px">Sa — the written note you play for Sa</label>
+                <label style="display:block; font:700 10.5px 'JetBrains Mono'; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px">Sa — the written note you play for Sa<?= isset($_SESSION['conv_sa']) ? ' · auto-detected from your last recording' : '' ?></label>
                 <select id="convSa" style="width:100%; font:500 14px 'DM Sans'; padding:9px 11px; border-radius:10px; border:1.5px solid var(--line); background:var(--panel-2); color:var(--text)"></select>
-            </div>
-            <div style="flex:1; min-width:170px">
-                <label style="display:block; font:700 10.5px 'JetBrains Mono'; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px">Scale / raga</label>
-                <select id="convRaga" style="width:100%; font:500 14px 'DM Sans'; padding:9px 11px; border-radius:10px; border:1.5px solid var(--line); background:var(--panel-2); color:var(--text)"></select>
             </div>
         </div>
         <table style="width:100%; border-collapse:collapse; font-family:'JetBrains Mono'; font-size:13px">
@@ -182,30 +178,21 @@ $maxSeconds = $config['max_audio_seconds'];
 <script>
     /* sax converter (embedded, client-side) */
     var SWARAS = [["S",0],["Ri(Shu)",1],["Ri(Cha)",2],["Ri(Shat)",3],["Ga(Ant)",4],["Ma(Shu)",5],["Ma(Pra)",6],["P",7],["Dha(Shu)",8],["Dha(Cha)",9],["Dha(Shat)",10],["Ni(Kak)",11]];
-    var RAGAS = {
-        "Mohanam":[0,2,4,7,9], "Hamsadhwani":[0,2,4,7,11], "Bilahari":[0,2,4,7,10],
-        "Kambhoji":[0,2,4,7,9,11], "Sankarabharanam":[0,2,4,5,7,9,11], "Kalyani":[0,2,4,6,7,9,11],
-        "Mayamalavagowla":[0,1,4,5,7,8,11], "Charukesi":[0,2,4,5,7,8,10],
-        "All 12 swaras":[0,1,2,3,4,5,6,7,8,9,10,11]
-    };
     var NNAME = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
     var SEMI = {C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11};
     function noteName(midi){ midi = ((midi % 12) + 12) % 12; return NNAME[midi]; }
     function parseSa(v){ var m = v.match(/^([A-G]#?)(\d)$/); return 12*(parseInt(m[2],10)+1) + SEMI[m[1]]; }
-    var convSa = document.getElementById('convSa'), convRaga = document.getElementById('convRaga');
+    var convSa = document.getElementById('convSa');
     ["A#3","B3","C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5"].forEach(function(n){
         var o = document.createElement('option'); o.value = n; o.textContent = n; convSa.appendChild(o);
     });
-    Object.keys(RAGAS).forEach(function(k){
-        var o = document.createElement('option'); o.value = k; o.textContent = k; convRaga.appendChild(o);
-    });
-    convSa.value = "A4"; convRaga.value = "Mohanam";
+    var convSaDefault = <?= isset($_SESSION['conv_sa']) ? json_encode($_SESSION['conv_sa']) : '"A4"' ?>;
+    if (convSaDefault && [...convSa.options].some(function(o){ return o.value === convSaDefault; })) convSa.value = convSaDefault;
     function updateConv(){
         var saMidi = parseSa(convSa.value);
-        var raga = RAGAS[convRaga.value];
         var rows = "";
-        for (var i = 0; i < raga.length; i++) {
-            var s = SWARAS[raga[i]];
+        for (var i = 0; i < SWARAS.length; i++) {
+            var s = SWARAS[i];
             var written = saMidi + s[1];
             var concert = written - 9;
             rows += "<tr><td class='syl' style='color:var(--gold); font-weight:700; padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05)'>" + s[0] +

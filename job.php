@@ -231,7 +231,8 @@ if ($noteCount > 0 && isset($notes[0]['midi'])) {
         </div>
         <?php endif ?>
 
-        <?php if ($raga !== null && !empty($raga['tonic'])) : ?>
+        <?php if ($raga !== null && !empty($raga['tonic'])) :
+            $_SESSION['conv_sa'] = $raga['sa']; ?>
         <div class="raga-card">
             <h2>RAGA ANALYSIS — a shortlist, not a verdict</h2>
             <p style="margin:0 0 10px;">Tonic detected: <b><?= e($raga['tonic']) ?></b></p>

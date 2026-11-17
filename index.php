@@ -107,6 +107,7 @@ $maxSeconds = $config['max_audio_seconds'];
         <div class="logo-tile">S</div>
         <div class="brand">Swara<span>Lab</span></div>
         <div class="spacer"></div>
+        <a class="logout-btn" href="convert.php" style="margin-left:auto">Sax converter</a>
         <a class="logout-btn" href="index.php?logout=1">Log out</a>
     </div>
 
